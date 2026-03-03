@@ -385,7 +385,20 @@ export default function App() {
                   <Label>YouTube Video URL</Label>
                   <div style={{ display:"flex", gap:10, marginBottom:12 }}>
                     <Input value={youtubeUrl} onChange={e=>{ setYoutubeUrl(e.target.value); setExtractedTranscript(""); setExtractError(""); }} placeholder="https://youtube.com/watch?v=..." style={{ flex:1, marginBottom:0 }} />
-                    <button onClick={()=>{ if(!extractVideoId(youtubeUrl)){ setExtractError("Invalid URL."); return; } setExtracting(true); setTimeout(()=>{ setExtractError("Auto-extraction requires a backend. Please paste the transcript below."); setSourceMode("text"); setExtracting(false); },1400); }}
+                    <button onClick={async () => {
+  const id = extractVideoId(youtubeUrl);
+  if (!id) { setExtractError("Invalid URL."); return; }
+  setExtracting(true); setExtractError("");
+  try {
+    const res = await fetch(`/api/transcript?videoId=${id}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    setExtractedTranscript(data.transcript);
+  } catch(e) {
+    setExtractError(e.message || "Extraction failed.");
+  }
+  setExtracting(false);
+}}
                       disabled={!youtubeUrl.trim()||extracting}
                       style={{ background:C.greenMid, color:C.white, border:"none", borderRadius:12, padding:"0 20px", fontWeight:700, fontSize:13, cursor:"pointer", whiteSpace:"nowrap", opacity:youtubeUrl.trim()?1:0.4, display:"flex", alignItems:"center", gap:8 }}>
                       {extracting ? <Spin /> : <><Icon name="search" size={14} color="#fff" /> Extract</>}
