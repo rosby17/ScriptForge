@@ -135,12 +135,7 @@ export default function App() {
     setAnalyzing(true); setError("");
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST", headers:{
-  "Content-Type":"application/json",
-  "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
-  "anthropic-version": "2023-06-01",
-  "anthropic-dangerous-direct-browser-access": "true",
-},
+        method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:800,
           messages:[{ role:"user", content:`Analyze this YouTube script. Return ONLY valid JSON, no markdown:\n\n${sourceScript.slice(0,3000)}\n\n{"niche":"one of: Health & Wellness, Finance & Money, Personal Development, Nutrition & Diet, Mental Health, Fitness & Sport, Technology, Spirituality, Relationships, Business","tone":"one of: authoritative, storytelling, energetic, conversational, educational","audience":"one of: seniors, adults, general, creators","channel_style":"2-sentence description","hook_type":"stat|question|story|controversy|promise","suggested_title":"improved viral title"}` }]
         })
@@ -174,7 +169,12 @@ export default function App() {
                            : `INSTRUCTION: ${parts[i].instruction}\nContinue seamlessly.`;
         history.push({ role:"user", content:msg });
         const res = await fetch("https://api.anthropic.com/v1/messages", {
-          method:"POST", headers:{"Content-Type":"application/json"},
+          method:"POST", headers:{
+            "Content-Type":"application/json",
+            "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+            "anthropic-dangerous-direct-browser-access": "true",
+          },
           body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:4000, messages:history })
         });
         const data = await res.json();
@@ -219,7 +219,8 @@ export default function App() {
   });
 
   return (
-<div style={{ minHeight:"100vh", width:"100%", background:C.bg, color:C.white, fontFamily:"'Inter',system-ui,sans-serif", overflowX:"hidden" }}>      <style>{`
+    <div style={{ minHeight:"100vh", background:C.bg, color:C.white, fontFamily:"'Inter',system-ui,sans-serif" }}>
+      <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         * { box-sizing:border-box; margin:0; padding:0; }
         ::placeholder { color:#3a5a3e; }
@@ -230,10 +231,11 @@ export default function App() {
         .btn-green:hover { background:#166534 !important; transform:translateY(-1px); }
         .mode-card:hover { border-color:#4ade8066 !important; background:#0f2212 !important; transform:translateY(-2px); box-shadow:0 12px 32px #00000060 !important; }
         .chip:hover { border-color:#4ade8044 !important; color:#a0f0b0 !important; }
+        .logo-btn:hover { opacity:0.8; }
       `}</style>
 
       <nav style={{ padding:"0 32px", height:60, display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:`1px solid ${C.border}`, background:C.bgCard }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+        <div onClick={reset} className="logo-btn" style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer" }}>
           <div style={{ width:32, height:32, borderRadius:10, background:`linear-gradient(135deg,${C.greenLight},#22c55e)`, display:"flex", alignItems:"center", justifyContent:"center" }}>
             <Icon name="pencil" size={16} color={C.bgCard} />
           </div>
@@ -256,8 +258,8 @@ export default function App() {
             ))}
           </div>
         )}
-        <button onClick={reset} style={{ fontSize:12, color:C.muted, background:"transparent", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
-          {step===3 && <><Icon name="chevronLeft" size={13} color={C.muted} /> New Script</>}
+        <button onClick={reset} style={{ fontSize:12, color:C.muted, background:"transparent", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:6, opacity: step > 0 ? 1 : 0, pointerEvents: step > 0 ? "auto" : "none" }}>
+          <Icon name="chevronLeft" size={13} color={C.muted} /> Accueil
         </button>
       </nav>
 
