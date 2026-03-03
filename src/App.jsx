@@ -135,7 +135,12 @@ export default function App() {
     setAnalyzing(true); setError("");
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST", headers:{"Content-Type":"application/json"},
+        method:"POST", headers:{
+  "Content-Type":"application/json",
+  "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+  "anthropic-version": "2023-06-01",
+  "anthropic-dangerous-direct-browser-access": "true",
+},
         body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:800,
           messages:[{ role:"user", content:`Analyze this YouTube script. Return ONLY valid JSON, no markdown:\n\n${sourceScript.slice(0,3000)}\n\n{"niche":"one of: Health & Wellness, Finance & Money, Personal Development, Nutrition & Diet, Mental Health, Fitness & Sport, Technology, Spirituality, Relationships, Business","tone":"one of: authoritative, storytelling, energetic, conversational, educational","audience":"one of: seniors, adults, general, creators","channel_style":"2-sentence description","hook_type":"stat|question|story|controversy|promise","suggested_title":"improved viral title"}` }]
         })
@@ -214,8 +219,7 @@ export default function App() {
   });
 
   return (
-    <div style={{ minHeight:"100vh", background:C.bg, color:C.white, fontFamily:"'Inter',system-ui,sans-serif" }}>
-      <style>{`
+<div style={{ minHeight:"100vh", width:"100%", background:C.bg, color:C.white, fontFamily:"'Inter',system-ui,sans-serif", overflowX:"hidden" }}>      <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         * { box-sizing:border-box; margin:0; padding:0; }
         ::placeholder { color:#3a5a3e; }
