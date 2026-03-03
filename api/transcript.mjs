@@ -5,29 +5,33 @@ export default async function handler(req, res) {
   const { videoId } = req.query;
   if (!videoId) return res.status(400).json({ error: 'Missing videoId' });
 
+  const API_KEY = process.env.YOUTUBE_API_KEY;
+
   try {
-    const response = await fetch(
-      "https://youtubetranscript.com/?server_vid2=" + videoId,
-      { headers: { 'User-Agent': 'Mozilla/5.0' } }
+    // Get available caption tracks
+    const tracksRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${videoId}&key=${API_KEY}`
     );
-    const html = await response.text();
-    const matches = [...html.matchAll(/<text[^>]*>(.*?)<\/text>/gs)];
+    const tracks = await tracksRes.json();
 
-    if (!matches.length) throw new Error('No subtitles found. Try pasting the script manually.');
+    if (!tracks.items?.length) {
+      throw new Error('No subtitles available for this video.');
+    }
 
-    const text = matches
-      .map(m => m[1]
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&#39;/g, "'")
-        .replace(/&quot;/g, '"')
-        .replace(/\n/g, ' ')
-      )
-      .join(' ')
-      .trim();
+    // Prefer French, fallback to English, then first available
+    const track =
+      tracks.items.find(t => t.snippet.language === 'fr') ||
+      tracks.items.find(t => t.snippet.language === 'en') ||
+      tracks.items[0];
 
-    if (!text) throw new Error('No subtitles found. Try pasting the script manually.');
+    // Download the caption track
+    const captionRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/captions/${track.id}?key=${API_KEY}`,
+      { headers: { Accept: 'text/plain' } }
+    );
+    const text = await captionRes.text();
+
+    if (!text || text.length < 50) throw new Error('Transcript is empty.');
     res.status(200).json({ transcript: text });
 
   } catch (err) {
