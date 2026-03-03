@@ -405,8 +405,18 @@ export default function App() {
                     </button>
                   </div>
                   {extractError && <ErrBox>{extractError}</ErrBox>}
-                  {extractedTranscript && <div style={{ color:C.greenLight, fontSize:12, fontWeight:600, marginBottom:12, display:"flex", alignItems:"center", gap:6 }}><Icon name="check" size={13} color={C.greenLight} /> Transcript ready — {extractedTranscript.length} chars</div>}
-                </div>
+                  {extractedTranscript && (
+  <div style={{ marginBottom:12 }}>
+    <div style={{ color:C.greenLight, fontSize:12, fontWeight:600, marginBottom:8, display:"flex", alignItems:"center", gap:6 }}>
+      <Icon name="check" size={13} color={C.greenLight} /> Transcript ready — {extractedTranscript.length} chars
+    </div>
+    <textarea
+      readOnly
+      value={extractedTranscript}
+      style={{ width:"100%", height:160, background:C.bgInput, border:`1px solid ${C.border}`, borderRadius:12, padding:"12px 14px", color:"#d0f0d8", fontSize:12, lineHeight:1.7, outline:"none", fontFamily:"Georgia,serif", resize:"vertical" }}
+    />
+  </div>
+)}
               )}
 
               {sourceMode==="text" && (
