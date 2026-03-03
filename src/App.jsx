@@ -405,7 +405,7 @@ export default function App() {
                     </button>
                   </div>
                   {extractError && <ErrBox>{extractError}</ErrBox>}
-                  {extractedTranscript && (
+                {extractedTranscript && (
   <div style={{ marginBottom:12 }}>
     <div style={{ color:C.greenLight, fontSize:12, fontWeight:600, marginBottom:8, display:"flex", alignItems:"center", gap:6 }}>
       <Icon name="check" size={13} color={C.greenLight} /> Transcript ready — {extractedTranscript.length} chars
@@ -417,6 +417,7 @@ export default function App() {
     />
   </div>
 )}
+                </div>
               )}
 
               {sourceMode==="text" && (
