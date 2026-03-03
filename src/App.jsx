@@ -135,7 +135,12 @@ export default function App() {
     setAnalyzing(true); setError("");
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST", headers:{"Content-Type":"application/json"},
+        method:"POST", headers:{
+          "Content-Type":"application/json",
+          "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
         body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:800,
           messages:[{ role:"user", content:`Analyze this YouTube script. Return ONLY valid JSON, no markdown:\n\n${sourceScript.slice(0,3000)}\n\n{"niche":"one of: Health & Wellness, Finance & Money, Personal Development, Nutrition & Diet, Mental Health, Fitness & Sport, Technology, Spirituality, Relationships, Business","tone":"one of: authoritative, storytelling, energetic, conversational, educational","audience":"one of: seniors, adults, general, creators","channel_style":"2-sentence description","hook_type":"stat|question|story|controversy|promise","suggested_title":"improved viral title"}` }]
         })
@@ -385,38 +390,14 @@ export default function App() {
                   <Label>YouTube Video URL</Label>
                   <div style={{ display:"flex", gap:10, marginBottom:12 }}>
                     <Input value={youtubeUrl} onChange={e=>{ setYoutubeUrl(e.target.value); setExtractedTranscript(""); setExtractError(""); }} placeholder="https://youtube.com/watch?v=..." style={{ flex:1, marginBottom:0 }} />
-                    <button onClick={async () => {
-  const id = extractVideoId(youtubeUrl);
-  if (!id) { setExtractError("Invalid URL."); return; }
-  setExtracting(true); setExtractError("");
-  try {
-    const res = await fetch(`/api/transcript?videoId=${id}`);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    setExtractedTranscript(data.transcript);
-  } catch(e) {
-    setExtractError(e.message || "Extraction failed.");
-  }
-  setExtracting(false);
-}}
+                    <button onClick={()=>{ if(!extractVideoId(youtubeUrl)){ setExtractError("Invalid URL."); return; } setExtracting(true); setTimeout(()=>{ setExtractError("Auto-extraction requires a backend. Please paste the transcript below."); setSourceMode("text"); setExtracting(false); },1400); }}
                       disabled={!youtubeUrl.trim()||extracting}
                       style={{ background:C.greenMid, color:C.white, border:"none", borderRadius:12, padding:"0 20px", fontWeight:700, fontSize:13, cursor:"pointer", whiteSpace:"nowrap", opacity:youtubeUrl.trim()?1:0.4, display:"flex", alignItems:"center", gap:8 }}>
                       {extracting ? <Spin /> : <><Icon name="search" size={14} color="#fff" /> Extract</>}
                     </button>
                   </div>
                   {extractError && <ErrBox>{extractError}</ErrBox>}
-                {extractedTranscript && (
-  <div style={{ marginBottom:12 }}>
-    <div style={{ color:C.greenLight, fontSize:12, fontWeight:600, marginBottom:8, display:"flex", alignItems:"center", gap:6 }}>
-      <Icon name="check" size={13} color={C.greenLight} /> Transcript ready — {extractedTranscript.length} chars
-    </div>
-    <textarea
-      readOnly
-      value={extractedTranscript}
-      style={{ width:"100%", height:160, background:C.bgInput, border:`1px solid ${C.border}`, borderRadius:12, padding:"12px 14px", color:"#d0f0d8", fontSize:12, lineHeight:1.7, outline:"none", fontFamily:"Georgia,serif", resize:"vertical" }}
-    />
-  </div>
-)}
+                  {extractedTranscript && <div style={{ color:C.greenLight, fontSize:12, fontWeight:600, marginBottom:12, display:"flex", alignItems:"center", gap:6 }}><Icon name="check" size={13} color={C.greenLight} /> Transcript ready — {extractedTranscript.length} chars</div>}
                 </div>
               )}
 
